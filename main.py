@@ -1,26 +1,19 @@
-from collections import namedtuple
+import csv
 from datetime import datetime
 from itertools import product
 
 from bs4 import BeautifulSoup
-from newspaper import Article
-import pandas as pd
 import requests
 
 
-KHN_URL = 'https://khn.org/news'
-YEARS = range(2009, 2011)
-MONTHS = range(1, 13)
-
-KhnArticleTuple = namedtuple('KhnArticle', 'headline url publish_dat')
+KHN_URL = 'https://khn.org/stories'
+PAGES = range(1, 610)
 
 
-def build_article_list(year: int, month: int) -> list:
-    # Get content
-    page = 1
-    headlines_list = []
-    while True:
-        url = f'{KHN_URL}/{str(year)}/{str(month)}/page/{page}'
+def build_article_list() -> list:
+    article_list = []
+    for page in PAGES:
+        url = f'{KHN_URL}/page/{page}'
         print(f'Getting {url}')
         r = requests.get(url)
         if r.status_code != requests.codes.ok:
@@ -35,14 +28,9 @@ def build_article_list(year: int, month: int) -> list:
                 'headline': headline.a.text,
                 'url': headline.a.get('href')
             }
-            headlines_list.append(data_dict)
-        page += 1
+            article_list.append(data_dict)
 
-    return headlines_list
-
-
-def download_articles():
-    pass
+    return article_list
 
 
 def main():
@@ -51,12 +39,11 @@ def main():
 
 if __name__ == '__main__':
 
-    article_list = []
-    now = datetime.now()
-    for year, month in product(YEARS, MONTHS):
-        if (year < now.year) or (year == now.year and month <= now.month):
-            print(f'Building article list for {year}-{month}')
-            article_list += build_article_list(year=year, month=month)
+    article_list = build_article_list()
 
-    for article in article_list[0:10]:
-        print(f"{article['headline']} - {article['url']}")
+    with open('khn_articles_urls.csv', 'w') as myfile:
+        print(f'Saving data')
+        writer = csv.DictWriter(myfile, fieldnames=['headline', 'url'])
+        writer.writeheader()
+        for article in article_list:
+            writer.writerow(article)
