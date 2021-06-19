@@ -1,6 +1,4 @@
 import csv
-from datetime import datetime
-from itertools import product
 
 from bs4 import BeautifulSoup
 import requests
@@ -31,10 +29,6 @@ def build_article_list() -> list:
             article_list.append(data_dict)
 
     return article_list
-
-
-def main():
-    pass
 
 
 if __name__ == '__main__':
